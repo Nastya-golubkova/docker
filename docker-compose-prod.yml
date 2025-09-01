@@ -1,0 +1,47 @@
+name: 's-dev'
+
+services:  
+  adminapi:
+    image: admin-api:41
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+#      DOTNET_SETTINGS: settings
+    volumes:
+      - ./infrastructure/s-docker/configs/adminapi:/app/settings
+      - /var/log/s-docker/adminapi:/app/logs
+    networks:
+      - netwrk1
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        order: stop-first
+      resources:
+        limits:
+          memory: 2048M
+              
+  clientapi:
+    image: s-client-api-img:19
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+#      DOTNET_SETTINGS: settings
+    volumes:
+      - ./infrastructure/s-docker/configs/clientapi:/app/settings
+      - /var/log/s-docker/clientapi:/app/logs
+    networks:
+      - netwrk1
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        order: stop-first
+      resources:
+        limits:
+          memory: 2048M
+              
+              
+    
+networks:
+  netwrk1:
+    
+    
