@@ -1,0 +1,28 @@
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+EXPOSE 8080
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG BUILD_CONFIGURATION=Debug
+WORKDIR /src
+COPY ["AdminApi/AdminApi.csproj", "AdminApi/"]
+COPY ["BusinessLogic/BusinessLogic.csproj", "BusinessLogic/"]
+COPY ["DataModel/DataModel.csproj", "DataModel/"]
+COPY ["Report/Report.csproj", "Report/"]
+COPY ["SADATA/SADATA.csproj", "SADATA/"]
+COPY ["SADATAPROC/SADATAPROC.csproj", "SADATAPROC/"]
+COPY ["SADB/SADB.csproj", "SADB/"]
+
+RUN dotnet restore "AdminApi/AdminApi.csproj"
+COPY . .
+RUN find -type d -name bin -prune -exec rm -rf {} \; && find -type d -name obj -prune -exec rm -rf {} \;
+WORKDIR "/src/."
+RUN dotnet build "AdminApi/AdminApi.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "AdminApi/AdminApi.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "AdminApi.dll", "--ASPNETCORE_ENVIRONMENT=Development"]
